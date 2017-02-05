@@ -4,52 +4,64 @@ class FSM {
      * @param config
      */
     constructor(config) {
-		this.config = config;
-		this.states = config.states;
-		this.state = config.initial;
-		this.history = [];
-		this.lastHistory = [];
-	}
+      if (!config) {
+        throw new Error();
+      } else {
+        this._initial = config.initial;
+        this._states = config.states;
+        this._history = [this._initial];
+        this._activeState = 0;
+      }
+    }
 
     /**
      * Returns active state.
      * @returns {String}
      */
     getState() {
-		return this.state;
-	}
+      return this._initial;
+    }
 
     /**
      * Goes to specified state.
      * @param state
      */
     changeState(state) {
-		if(this.states[state]){
-	       this.history.push(this.state);
-		   this.lastHistory = [];
-           this.state = state;		   
-		}
-		else throw new Error();
-	}
+      let states = this._states;
+
+      if (!states[state]) {
+        throw new Error();
+      } else {
+        this._initial = state;
+        this._history.push(state);
+        this._activeState = this._history.indexOf(state);
+      }
+    }
 
     /**
      * Changes state according to event transition rules.
      * @param event
      */
     trigger(event) {
-        if (this.states[this.state].transitions[event]) {
-            this.changeState(this.states[this.state].transitions[event]);
+      let transition = this._states[this._initial].transitions;
+
+      if (!transition[event]) {
+        throw new Error();
+      } else {
+        this._initial = transition[event];
+        if (this._history.indexOf(transition[event]) === -1) {
+          this._history.push(transition[event]);
         }
-        else throw new Error();
-	}
+        this._activeState = this._history.indexOf(transition[event]);
+      }
+    }
 
     /**
      * Resets FSM state to initial.
      */
     reset() {
-		this.state = this.config.initial;
-        this.history.push(this.state);
-	}
+      this._initial = 'normal';
+    }
 
     /**
      * Returns an array of states for which there are specified event transition rules.
@@ -58,15 +70,23 @@ class FSM {
      * @returns {Array}
      */
     getStates(event) {
-		var result = [];       
-        for (var prop in this.config.states) {
-            if(!event) result.push(prop);
-            else if(event in this.config.states[prop].transitions) {
-                result.push(prop);                
-            } 
+      if (!event) {
+        let arr = [];
+        for (let key in this._states) {
+          arr.push(key);
         }
-        return result;
-	}
+        return arr;
+      }
+
+      let arr = [];
+      for (let key in this._states) {
+        if (this._states[key].transitions[event]) {
+          arr.push(key);
+        }
+      }
+      return arr;
+
+    }
 
     /**
      * Goes back to previous state.
@@ -74,14 +94,14 @@ class FSM {
      * @returns {Boolean}
      */
     undo() {
-		if (this.history.length == 0) {
-			return false; 
-		}else {
-            this.lastHistory.push(this.state);
-            this.state = this.history.pop();
-            return true;
-        }
-	}
+      if (this._initial === 'normal') {
+        return false;
+      } else {
+        this._activeState--;
+        this._initial = this._history[this._activeState];
+        return true;
+      }
+    }
 
     /**
      * Goes redo to state.
@@ -89,25 +109,23 @@ class FSM {
      * @returns {Boolean}
      */
     redo() {
-		if (this.lastHistory.length == 0) {
-			return false;
-		}else {
-            this.history.push(this.state);
-            this.state = this.lastHistory.pop();
-            return true;
-		}
-	}
+      if (this._history.length === 1 || !this._history[this._activeState+1]) {
+        return false;
+      } else {
+        this._activeState++;
+        this._initial = this._history[this._activeState];
+        return true;
+      }
+    }
 
     /**
      * Clears transition history
      */
     clearHistory() {
-		this.history = [];
-        this.lastHistory = [];
-		
-	}
+      this._initial = 'normal';
+      this._history = ['normal'];
+      this._activeState = 0;
+    }
 }
 
 module.exports = FSM;
-
-/** @Created by Uladzimir Halushka **/
