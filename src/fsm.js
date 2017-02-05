@@ -4,33 +4,33 @@ class FSM {
      * @param config
      */
     constructor(config) {
-		this.config = config;
-		this.states = config.states;
-		this.state = config.initial;
-		this.history = [];
-		this.lastHistory = [];
-	}
+	this.config = config;
+	this.states = config.states;
+	this.state = config.initial;
+	this.history = [];
+	this.lastHistory = [];
+    }
 
     /**
      * Returns active state.
      * @returns {String}
      */
     getState() {
-		return this.state;
-	}
+	return this.state;
+    }
 
     /**
      * Goes to specified state.
      * @param state
      */
     changeState(state) {
-		if(this.states[state]){
-			this.history.push(this.state);
-			this.lastHistory = [];
-			this.state = state;
-		}
-		else throw new Error();
+	if(this.states[state]){
+		this.history.push(this.state);
+		this.lastHistory = [];
+		this.state = state;
 	}
+	else throw new Error();
+    }
 
     /**
      * Changes state according to event transition rules.
@@ -41,15 +41,15 @@ class FSM {
             this.changeState(this.states[this.state].transitions[event]);
         }
         else throw new Error();
-	}
+    }
 
     /**
      * Resets FSM state to initial.
      */
     reset() {
-		this.state = this.config.initial;
+	this.state = this.config.initial;
         this.history.push(this.state);
-	}
+    }
 
     /**
      * Returns an array of states for which there are specified event transition rules.
@@ -66,7 +66,7 @@ class FSM {
             } 
         }
         return result;
-	}
+    }
 
     /**
      * Goes back to previous state.
@@ -74,14 +74,14 @@ class FSM {
      * @returns {Boolean}
      */
     undo() {
-		if (this.history.length == 0) {
-			return false;
-		}else {
+	if (this.history.length == 0) {
+		return false;
+	}else {
             this.lastHistory.push(this.state);
             this.state = this.history.pop();
             return true;
         }
-	}
+    }
 
     /**
      * Goes redo to state.
@@ -89,22 +89,22 @@ class FSM {
      * @returns {Boolean}
      */
     redo() {
-		if (this.lastHistory.length == 0) {
-			return false;
-		}else {
+	if (this.lastHistory.length == 0) {
+		return false;
+	}else {
             this.history.push(this.state);
             this.state = this.lastHistory.pop();
             return true;
-		}
 	}
+    }
 
     /**
      * Clears transition history
      */
     clearHistory() {
-		this.history = [];
+	this.history = [];
         this.lastHistory = [];
-	}
+    }
 }
 
 module.exports = FSM;
