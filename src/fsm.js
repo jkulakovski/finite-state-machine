@@ -104,6 +104,7 @@ class FSM {
     clearHistory() {
 		this.history = [];
         this.lastHistory = [];
+		
 	}
 }
 
